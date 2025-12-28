@@ -185,16 +185,7 @@ function drawUI() {
     ctx.font = '18px monospace';
     ctx.textAlign = 'left';
     
-    const infoText = [
-        `Position: (${Math.round(player.x)}, ${Math.round(player.y)})`,
-        `Mode: ${player.gridMode ? 'GRID' : 'FREE'}`,
-        `Facing: ${player.lastDirection.toUpperCase()}`,
-        `Moving: ${player.moving ? 'YES' : 'NO'}`
-    ];
-    
-    infoText.forEach((text, i) => {
-        ctx.fillText(text, 10, 30 + i * 25);
-    });
+   
 }
 
 // Main game loop
