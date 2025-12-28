@@ -26,6 +26,25 @@
 
           await runPythonGame();
         }
+
+        //Function to run Python game code, code must be in quotes.
+        async function runPythonGame() {
+          const pythonCode = `
+          #IMPORTS
+          import pygame
+          import sys
+          import math
+
+          #INITIALIZATION SECTION
+          pygame.init();
+
+          #Display window
+          screen_width = 800
+          screen_height = 600
+          screen = pygame.display.set_mode((screen_width, screen_height))
+          `
+        }
+        
   </head>
   <body>
     
