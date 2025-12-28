@@ -1,26 +1,69 @@
 // Game variables
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-const info = document.getElementById('info');
 
 // Canvas setup
 canvas.width = 800;
 canvas.height = 600;
 
 // Game settings
-const GRID_SIZE = 32;
 const PLAYER_SPEED = 5;
+
+// World size (larger than canvas)
+const WORLD_WIDTH = 2000;
+const WORLD_HEIGHT = 2000;
+
+// Camera system
+const camera = {
+    x: 0,
+    y: 0,
+    width: canvas.width,
+    height: canvas.height,
+    
+    // Smooth follow settings
+    smoothness: 0.1,
+    
+    // Follow the player smoothly
+    follow(targetX, targetY) {
+        // Calculate where camera should be (center on target)
+        const targetCamX = targetX - this.width / 2;
+        const targetCamY = targetY - this.height / 2;
+        
+        // Keep camera within world boundaries
+        const clampedX = Math.max(0, Math.min(targetCamX, WORLD_WIDTH - this.width));
+        const clampedY = Math.max(0, Math.min(targetCamY, WORLD_HEIGHT - this.height));
+        
+        // Smooth interpolation
+        this.x += (clampedX - this.x) * this.smoothness;
+        this.y += (clampedY - this.y) * this.smoothness;
+    },
+    
+    // Convert world coordinates to screen coordinates
+    toScreen(worldX, worldY) {
+        return {
+            x: worldX - this.x,
+            y: worldY - this.y
+        };
+    }
+};
 
 // Player object
 const player = {
-    x: canvas.width / 2,
-    y: canvas.height / 2,
+    x: WORLD_WIDTH / 2,
+    y: WORLD_HEIGHT / 2,
     width: 32,
     height: 32,
     speed: PLAYER_SPEED,
-    gridMode: true,
     lastDirection: 'down',
-    moving: false
+    
+    // Get center coordinates
+    get centerX() {
+        return this.x + this.width / 2;
+    },
+    
+    get centerY() {
+        return this.y + this.height / 2;
+    }
 };
 
 // Key states
@@ -35,11 +78,8 @@ const keys = {
     arrowRight: false
 };
 
-// Initialize
-function init() {
-    info.textContent = 'Use WASD or Arrow Keys to move | G to toggle grid';
-    gameLoop();
-}
+// Initialize camera to player position
+camera.follow(player.centerX, player.centerY);
 
 // Handle keyboard input
 document.addEventListener('keydown', (e) => {
@@ -52,18 +92,6 @@ document.addEventListener('keydown', (e) => {
         case 'arrowleft': keys.arrowLeft = true; break;
         case 'arrowdown': keys.arrowDown = true; break;
         case 'arrowright': keys.arrowRight = true; break;
-        
-        // Toggle grid mode
-        case 'g':
-            player.gridMode = !player.gridMode;
-            console.log(`Grid mode: ${player.gridMode ? 'ON' : 'OFF'}`);
-            break;
-            
-        // Reset position
-        case 'r':
-            player.x = canvas.width / 2;
-            player.y = canvas.height / 2;
-            break;
     }
 });
 
@@ -95,13 +123,12 @@ function updatePlayer() {
     
     // Normalize diagonal movement
     if (moveX !== 0 && moveY !== 0) {
-        moveX *= 0.7071; // 1 / sqrt(2)
+        moveX *= 0.7071;
         moveY *= 0.7071;
     }
     
     // Apply movement
     if (moveX !== 0 || moveY !== 0) {
-        player.moving = true;
         player.x += moveX * player.speed;
         player.y += moveY * player.speed;
         
@@ -111,81 +138,80 @@ function updatePlayer() {
         } else {
             player.lastDirection = moveY > 0 ? 'down' : 'up';
         }
-    } else {
-        player.moving = false;
     }
     
-    // Grid snapping
-    if (player.gridMode && !player.moving) {
-        player.x = Math.round(player.x / GRID_SIZE) * GRID_SIZE;
-        player.y = Math.round(player.y / GRID_SIZE) * GRID_SIZE;
-    }
+    // Keep player within world bounds
+    player.x = Math.max(0, Math.min(player.x, WORLD_WIDTH - player.width));
+    player.y = Math.max(0, Math.min(player.y, WORLD_HEIGHT - player.height));
     
-    // Keep player in bounds
-    player.x = Math.max(0, Math.min(player.x, canvas.width - player.width));
-    player.y = Math.max(0, Math.min(player.y, canvas.height - player.height));
-}
-
-// Draw grid
-function drawGrid() {
-    ctx.strokeStyle = 'rgba(97, 175, 239, 0.3)';
-    ctx.lineWidth = 1;
-    
-    // Vertical lines
-    for (let x = 0; x <= canvas.width; x += GRID_SIZE) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvas.height);
-        ctx.stroke();
-    }
-    
-    // Horizontal lines
-    for (let y = 0; y <= canvas.height; y += GRID_SIZE) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(canvas.width, y);
-        ctx.stroke();
-    }
+    // Update camera
+    camera.follow(player.centerX, player.centerY);
 }
 
 // Draw player
 function drawPlayer() {
+    const screenPos = camera.toScreen(player.x, player.y);
+    
     // Player body
     ctx.fillStyle = '#61afef';
-    ctx.fillRect(player.x, player.y, player.width, player.height);
+    ctx.fillRect(screenPos.x, screenPos.y, player.width, player.height);
     
     // Direction indicator
     ctx.fillStyle = '#3d8bce';
-    let indicatorX = player.x;
-    let indicatorY = player.y;
     
     switch(player.lastDirection) {
         case 'up':
-            indicatorY += 6;
-            ctx.fillRect(player.x + 10, indicatorY, 12, 8);
+            ctx.fillRect(screenPos.x + 10, screenPos.y + 6, 12, 8);
             break;
         case 'down':
-            indicatorY += player.height - 14;
-            ctx.fillRect(player.x + 10, indicatorY, 12, 8);
+            ctx.fillRect(screenPos.x + 10, screenPos.y + player.height - 14, 12, 8);
             break;
         case 'left':
-            indicatorX += 6;
-            ctx.fillRect(indicatorX, player.y + 10, 8, 12);
+            ctx.fillRect(screenPos.x + 6, screenPos.y + 10, 8, 12);
             break;
         case 'right':
-            indicatorX += player.width - 14;
-            ctx.fillRect(indicatorX, player.y + 10, 8, 12);
+            ctx.fillRect(screenPos.x + player.width - 14, screenPos.y + 10, 8, 12);
             break;
     }
 }
 
-// Draw UI info
-function drawUI() {
-    ctx.fillStyle = '#98c379';
-    ctx.font = '18px monospace';
-    ctx.textAlign = 'left';
+// Draw world objects (simple test objects)
+function drawWorldObjects() {
+    // Create some test objects
+    const objects = [
+        { x: 500, y: 500, width: 40, height: 40, color: '#2ecc71' },
+        { x: 800, y: 300, width: 50, height: 30, color: '#95a5a6' },
+        { x: 1200, y: 700, width: 60, height: 60, color: '#e74c3c' },
+        { x: 300, y: 1200, width: 40, height: 40, color: '#2ecc71' },
+        { x: 1500, y: 400, width: 50, height: 30, color: '#95a5a6' },
+        { x: 1800, y: 1800, width: 60, height: 60, color: '#e74c3c' }
+    ];
     
-   
+    objects.forEach(obj => {
+        // Check if object is in camera view
+        if (obj.x + obj.width > camera.x && 
+            obj.x < camera.x + camera.width &&
+            obj.y + obj.height > camera.y && 
+            obj.y < camera.y + camera.height) {
+            
+            const screenPos = camera.toScreen(obj.x, obj.y);
+            ctx.fillStyle = obj.color;
+            ctx.fillRect(screenPos.x, screenPos.y, obj.width, obj.height);
+        }
+    });
+}
+
+// Draw simple UI
+function drawUI() {
+    // Draw player position info
+    ctx.fillStyle = '#98c379';
+    ctx.font = '16px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText(`Position: (${Math.round(player.x)}, ${Math.round(player.y)})`, 10, 30);
+    
+    // Draw world info
+    ctx.fillStyle = '#61afef';
+    ctx.fillText(`World: ${WORLD_WIDTH}x${WORLD_HEIGHT}`, 10, 60);
 }
 
 // Main game loop
@@ -194,11 +220,9 @@ function gameLoop() {
     ctx.fillStyle = '#282c34';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Update
+    // Update and draw
     updatePlayer();
-    
-    // Draw
-    if (player.gridMode) drawGrid();
+    drawWorldObjects();
     drawPlayer();
     drawUI();
     
@@ -207,4 +231,4 @@ function gameLoop() {
 }
 
 // Start game when page loads
-window.addEventListener('load', init);
+window.addEventListener('load', gameLoop);
