@@ -8,7 +8,24 @@
       import { loadPyodide } from "https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js";
 
       let pyodide;
-        
+
+      //Initializing Pyodide
+        async function(){
+          pyodide = await loadPyodide({
+            indexURL: "https://cdn.jsdelivr.net/pyodide/v0.25.0/full/"
+          });
+
+         //load micropip
+          await pyodide.loadPackage("micropip");
+          const micropip = pyodide.pyimport("micropip");
+
+          //installing pygame-wasm for web browser edition
+          console.log("Installing pygame-wasm...");
+          await micropip.install("pygame-wasm");
+          console.log("Installation complete!");
+
+          await runPythonGame();
+        }
   </head>
   <body>
     
