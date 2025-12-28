@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Clearance</title>
+    <title>2D RPG Movement</title>
     <style>
         body {
             margin: 0;
             padding: 20px;
             background: #1a1a2e;
-            text-align: center;
-            font-family: Arial, sans-serif;
             color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
         }
         canvas {
             border: 3px solid #61afef;
@@ -19,31 +19,39 @@
             margin: 20px auto;
         }
         .controls {
-            color: #98c379;
-            font-size: 18px;
-            margin: 10px;
+            margin: 20px auto;
+            padding: 20px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            max-width: 800px;
         }
         .key {
             background: #61afef;
             color: black;
             padding: 5px 10px;
             border-radius: 5px;
-            margin: 0 3px;
+            margin: 0 5px;
             font-family: monospace;
             font-weight: bold;
+        }
+        #info {
+            color: #98c379;
+            font-size: 18px;
+            margin: 10px;
         }
     </style>
 </head>
 <body>
-    <h1>Clearance: A 2D Laboratory Mystery RPG</h1>
-    <div class="controls">
-        <span class="key">W</span>
-        <span class="key">A</span>
-        <span class="key">S</span>
-        <span class="key">D</span>
-        or Arrow Keys to move
-    </div>
+    <h1>2D RPG Movement System</h1>
+    <div id="info">Loading...</div>
     <canvas id="gameCanvas"></canvas>
+    
+    <div class="controls">
+        <h3>Controls:</h3>
+        <p><span class="key">W</span> <span class="key">A</span> <span class="key">S</span> <span class="key">D</span> or Arrow Keys - Move</p>
+        <p><span class="key">G</span> - Toggle Grid Mode</p>
+        <p><span class="key">R</span> - Reset Position</p>
+    </div>
 
     <script src="game.js"></script>
 </body>
