@@ -1,52 +1,58 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8">
-      <title>Clearance</title>
-      <script type="module">
-      //Imported Pyodide for browser compatibility
-      import { loadPyodide } from "https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js";
-
-      let pyodide;
-
-      //Initializing Pyodide
-        async function(){
-          pyodide = await loadPyodide({
-            indexURL: "https://cdn.jsdelivr.net/pyodide/v0.25.0/full/"
-          });
-
-         //load micropip
-          await pyodide.loadPackage("micropip");
-          const micropip = pyodide.pyimport("micropip");
-
-          //installing pygame-wasm for web browser edition
-          console.log("Installing pygame-wasm...");
-          await micropip.install("pygame-wasm");
-          console.log("Installation complete!");
-
-          await runPythonGame();
+<head>
+    <title>Clearance</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #1a1a2e;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
         }
-
-        //Function to run Python game code, code must be in quotes.
-        async function runPythonGame() {
-          const pythonCode = `
-          #IMPORTS
-          import pygame
-          import sys
-          import math
-
-          #INITIALIZATION SECTION
-          pygame.init();
-
-          #Display window
-          screen_width = 800
-          screen_height = 600
-          screen = pygame.display.set_mode((screen_width, screen_height))
-          `
+        canvas {
+            border: 3px solid #61afef;
+            border-radius: 8px;
+            background: #282c34;
+            display: block;
+            margin: 20px auto;
         }
-        
-  </head>
-  <body>
+        .controls {
+            margin: 20px auto;
+            padding: 20px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            max-width: 800px;
+        }
+        .key {
+            background: #61afef;
+            color: black;
+            padding: 5px 10px;
+            border-radius: 5px;
+            margin: 0 5px;
+            font-family: monospace;
+            font-weight: bold;
+        }
+        #info {
+            color: #98c379;
+            font-size: 18px;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>2D RPG Movement System</h1>
+    <div id="info">Loading...</div>
+    <canvas id="gameCanvas"></canvas>
     
-  </body>
+    <div class="controls">
+        <h3>Controls:</h3>
+        <p><span class="key">W</span> <span class="key">A</span> <span class="key">S</span> <span class="key">D</span> or Arrow Keys - Move</p>
+        <p><span class="key">G</span> - Toggle Grid Mode</p>
+        <p><span class="key">R</span> - Reset Position</p>
+    </div>
+
+    <script src="game.js"></script>
+</body>
 </html>
